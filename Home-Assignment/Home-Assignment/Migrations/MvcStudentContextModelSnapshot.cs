@@ -17,11 +17,15 @@ namespace Home_Assignment.Migrations
 
             modelBuilder.Entity("Home_Assignment.Models.Student", b =>
                 {
-                    b.Property<string>("first_name")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<double>("age")
                         .HasColumnType("REAL");
+
+                    b.Property<string>("first_name")
+                        .HasColumnType("TEXT");
 
                     b.Property<double>("gpa")
                         .HasColumnType("REAL");
@@ -35,7 +39,7 @@ namespace Home_Assignment.Migrations
                     b.Property<string>("school_of_name")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("first_name");
+                    b.HasKey("id");
 
                     b.ToTable("Student");
                 });

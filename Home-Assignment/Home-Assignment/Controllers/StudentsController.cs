@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Home_Assignment.Data;
 using Home_Assignment.Models;
+using Home_Assignment.Dal;
 
 namespace Home_Assignment.Controllers
 {
@@ -21,16 +22,9 @@ namespace Home_Assignment.Controllers
             _context = context;
         }
 
-        // GET: api/Students
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
-        {
-            return await _context.Student.ToListAsync();
-        }
-
         // GET: api/Students/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Student>> GetStudent(string id)
+        [HttpGet("GetStudent")]
+        public async Task<ActionResult<Student>> GetStudent(int id)
         {
             var student = await _context.Student.FindAsync(id);
 
@@ -38,25 +32,41 @@ namespace Home_Assignment.Controllers
             {
                 return NotFound();
             }
-
+            else if (!RedisService.isTheDurationTooShort("GetStudent"))
+            {
+                return Content("This query was called 10 seconds ago");
+            }
             return student;
         }
 
         // PUT: api/Students/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateStudent(string id, Student student)
+        [HttpPut("UpdateStudent")]
+        public async Task<IActionResult> UpdateStudent(int id, Student student)
         {
-            if (id != student.first_name)
+            if (id != student.id)
             {
                 return BadRequest();
             }
-
             _context.Entry(student).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                if (student.age <= 18)
+                {
+                    if (!RedisService.isTheDurationTooShort("UpdateStudent"))
+                    {
+                        return Content("This query was called in the last 10 seconds");
+                    }
+                    else
+                    {
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                else
+                {
+                    return Content("The age of the student must be between 0-18");
+                }
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -75,32 +85,46 @@ namespace Home_Assignment.Controllers
 
         // POST: api/Students
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
+        [HttpPost("CreateStudent")]
         public async Task<ActionResult<Student>> CreateStudent(Student student)
         {
-            _context.Student.Add(student);
-            try
+            if (student.age <= 18)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (StudentExists(student.first_name))
+                _context.Student.Add(student);
+                try
                 {
-                    return Conflict();
+                    if (!RedisService.isTheDurationTooShort("GetStudent"))
+                    {
+                        return Content("This query was called in the last 10 seconds");
+                    }
+                    else
+                    {
+                        await _context.SaveChangesAsync();
+                    }
                 }
-                else
+                catch (DbUpdateException)
                 {
-                    throw;
+                    if (StudentExists(student.id))
+                    {
+                        return Conflict();
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
-            }
 
-            return CreatedAtAction("GetStudent", new { id = student.first_name }, student);
+                return CreatedAtAction("GetStudent", new { id = student.id }, student);
+            }
+            else
+            {
+                return Content("The student age must be between 0-18");
+            }
         }
 
         // DELETE: api/Students/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteStudent(string id)
+        [HttpDelete("DeleteStudent")]
+        public async Task<IActionResult> DeleteStudent(int id)
         {
             var student = await _context.Student.FindAsync(id);
             if (student == null)
@@ -114,9 +138,9 @@ namespace Home_Assignment.Controllers
             return NoContent();
         }
 
-        private bool StudentExists(string id)
+        private bool StudentExists(int id)
         {
-            return _context.Student.Any(e => e.first_name == id);
+            return _context.Student.Any(e => e.id == id);
         }
 
 
