@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Home_Assignment.Migrations
 {
     [DbContext(typeof(MvcStudentContext))]
-    [Migration("20220312170941_Initial")]
+    [Migration("20220313025655_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -19,7 +19,7 @@ namespace Home_Assignment.Migrations
 
             modelBuilder.Entity("Home_Assignment.Models.Student", b =>
                 {
-                    b.Property<int>("id")
+                    b.Property<long>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -35,10 +35,10 @@ namespace Home_Assignment.Migrations
                     b.Property<string>("last_name")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("school_address")
+                    b.Property<string>("name_of_school")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("school_of_name")
+                    b.Property<string>("school_address")
                         .HasColumnType("TEXT");
 
                     b.HasKey("id");

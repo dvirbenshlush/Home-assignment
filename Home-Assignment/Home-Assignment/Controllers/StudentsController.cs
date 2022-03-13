@@ -16,19 +16,47 @@ namespace Home_Assignment.Controllers
     public class StudentsController : ControllerBase
     {
         private readonly MvcStudentContext _context;
+        const int Minimum_age = 0;
+        const int Maximum_age = 18;
 
         public StudentsController(MvcStudentContext context)
         {
             _context = context;
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
+        {
+            return await _context.Student.ToListAsync();
+        }
+
+
         // GET: api/Students/5
         [HttpGet("GetStudent")]
-        public async Task<ActionResult<Student>> GetStudent(int id)
+        public async Task<ActionResult<List<Student>>> GetStudent(string first_name = null, string last_name = null, double age = -1, double gpa = -1, string name_of_school = null, string school_address = null)
         {
-            var student = await _context.Student.FindAsync(id);
+            List<Student> studentsResult = new List<Student>();
+            //await _context.Student.Where(student => student.first_name == first_name).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
+            //await _context.Student.Where(student => student.last_name == last_name).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
+            //await _context.Student.Where(student => student.age == age).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
+            //await _context.Student.Where(student => student.gpa == gpa).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
+            //await _context.Student.Where(student => student.name_of_school == name_of_school).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
+            //await _context.Student.Where(student => student.school_address == school_address).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
 
-            if (student == null)
+            studentsResult.AddRange( _context.Student.Where(student => student.first_name == first_name 
+            || student.last_name == last_name 
+            || student.age == age
+            || student.gpa == gpa
+            || student.name_of_school == name_of_school
+            || student.school_address == school_address)
+                .Distinct().ToList());
+            //studentsResult.AddRange(_context.Student.Where(student => student.last_name == last_name));
+            //studentsResult.AddRange(_context.Student.Where(student => student.age == age));
+            //studentsResult.AddRange(_context.Student.Where(student => student.gpa == gpa));
+            //studentsResult.AddRange(_context.Student.Where(student => student.name_of_school == name_of_school));
+            //studentsResult.AddRange(_context.Student.Where(student => student.school_address == school_address));
+
+            if (studentsResult == null)
             {
                 return NotFound();
             }
@@ -36,15 +64,14 @@ namespace Home_Assignment.Controllers
             {
                 return Content("This query was called 10 seconds ago");
             }
-            return student;
+            return studentsResult;
         }
 
         // PUT: api/Students/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("UpdateStudent")]
-        public async Task<IActionResult> UpdateStudent(int id, Student student)
+        public async Task<IActionResult> UpdateStudent(Student student)
         {
-            if (id != student.id)
+            if (student.id != student.id)
             {
                 return BadRequest();
             }
@@ -52,7 +79,7 @@ namespace Home_Assignment.Controllers
 
             try
             {
-                if (student.age <= 18)
+                if (student.age <= Maximum_age && student.age >= Minimum_age)
                 {
                     if (!RedisService.isTheDurationTooShort("UpdateStudent"))
                     {
@@ -70,7 +97,7 @@ namespace Home_Assignment.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!StudentExists(id))
+                if (!StudentExists(student.id))
                 {
                     return NotFound();
                 }
@@ -84,11 +111,10 @@ namespace Home_Assignment.Controllers
         }
 
         // POST: api/Students
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("CreateStudent")]
         public async Task<ActionResult<Student>> CreateStudent(Student student)
         {
-            if (student.age <= 18)
+            if (student.age <= Maximum_age && student.age >= Minimum_age)
             {
                 _context.Student.Add(student);
                 try
@@ -124,7 +150,7 @@ namespace Home_Assignment.Controllers
 
         // DELETE: api/Students/5
         [HttpDelete("DeleteStudent")]
-        public async Task<IActionResult> DeleteStudent(int id)
+        public async Task<IActionResult> DeleteStudent(long id)
         {
             var student = await _context.Student.FindAsync(id);
             if (student == null)
@@ -138,9 +164,9 @@ namespace Home_Assignment.Controllers
             return NoContent();
         }
 
-        private bool StudentExists(int id)
+        private bool StudentExists(long id)
         {
-            return _context.Student.Any(e => e.id == id);
+            return _context.Student.Any(student => student.id == id);
         }
 
 

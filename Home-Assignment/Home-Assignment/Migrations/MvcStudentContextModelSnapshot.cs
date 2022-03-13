@@ -17,7 +17,7 @@ namespace Home_Assignment.Migrations
 
             modelBuilder.Entity("Home_Assignment.Models.Student", b =>
                 {
-                    b.Property<int>("id")
+                    b.Property<long>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -33,10 +33,10 @@ namespace Home_Assignment.Migrations
                     b.Property<string>("last_name")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("school_address")
+                    b.Property<string>("name_of_school")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("school_of_name")
+                    b.Property<string>("school_address")
                         .HasColumnType("TEXT");
 
                     b.HasKey("id");
