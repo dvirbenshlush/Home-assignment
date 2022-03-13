@@ -26,11 +26,11 @@ namespace Home_Assignment.Controllers
             _context = context;
         }
 
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
-        //{
-        //    return await _context.Student.ToListAsync();
-        //}
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
+        {
+            return await _context.Student.ToListAsync();
+        }
 
 
         // GET: api/Students/5

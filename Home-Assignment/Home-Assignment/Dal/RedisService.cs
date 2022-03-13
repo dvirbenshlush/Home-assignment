@@ -47,7 +47,7 @@ namespace Home_Assignment.Dal
 
             if (duration.Seconds > 10)
             {
-                RedisService.SaveData(ConfigurationManager.AppSettings["Minimum_age"].ToString(), id_and_action_name, DateTime.Now.ToString());
+                RedisService.SaveData(ConfigurationManager.AppSettings["localhost"].ToString(), id_and_action_name, DateTime.Now.ToString());
                 return true;
             }
             return false;
