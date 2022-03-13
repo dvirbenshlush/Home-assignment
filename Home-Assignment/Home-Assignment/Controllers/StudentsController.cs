@@ -15,6 +15,7 @@ namespace Home_Assignment.Controllers
     [ApiController]
     public class StudentsController : ControllerBase
     {
+        public static Dictionary<long, Dictionary<string, Task<IActionResult>>> isExsitInTheCache = new Dictionary<long, Dictionary<string, Task<IActionResult>>>();
         private readonly MvcStudentContext _context;
         const int Minimum_age = 0;
         const int Maximum_age = 18;
@@ -36,13 +37,6 @@ namespace Home_Assignment.Controllers
         public async Task<ActionResult<List<Student>>> GetStudent(string first_name = null, string last_name = null, double age = -1, double gpa = -1, string name_of_school = null, string school_address = null)
         {
             List<Student> studentsResult = new List<Student>();
-            //await _context.Student.Where(student => student.first_name == first_name).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
-            //await _context.Student.Where(student => student.last_name == last_name).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
-            //await _context.Student.Where(student => student.age == age).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
-            //await _context.Student.Where(student => student.gpa == gpa).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
-            //await _context.Student.Where(student => student.name_of_school == name_of_school).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
-            //await _context.Student.Where(student => student.school_address == school_address).ForEachAsync(stuntAfterFilter => studentsResult.Add(stuntAfterFilter));
-
             studentsResult.AddRange( _context.Student.Where(student => student.first_name == first_name 
             || student.last_name == last_name 
             || student.age == age
@@ -50,19 +44,14 @@ namespace Home_Assignment.Controllers
             || student.name_of_school == name_of_school
             || student.school_address == school_address)
                 .Distinct().ToList());
-            //studentsResult.AddRange(_context.Student.Where(student => student.last_name == last_name));
-            //studentsResult.AddRange(_context.Student.Where(student => student.age == age));
-            //studentsResult.AddRange(_context.Student.Where(student => student.gpa == gpa));
-            //studentsResult.AddRange(_context.Student.Where(student => student.name_of_school == name_of_school));
-            //studentsResult.AddRange(_context.Student.Where(student => student.school_address == school_address));
 
             if (studentsResult == null)
             {
                 return NotFound();
             }
-            else if (!RedisService.isTheDurationTooShort("GetStudent"))
+            else if (!RedisService.isTheDurationTooShort(studentsResult.First().id + "GetStudent"))
             {
-                return Content("This query was called 10 seconds ago");
+                LogsHelper.writeToLog("This query was called 10 seconds ago");
             }
             return studentsResult;
         }
@@ -71,28 +60,27 @@ namespace Home_Assignment.Controllers
         [HttpPut("UpdateStudent")]
         public async Task<IActionResult> UpdateStudent(Student student)
         {
-            if (student.id != student.id)
-            {
-                return BadRequest();
-            }
+
             _context.Entry(student).State = EntityState.Modified;
 
             try
             {
                 if (student.age <= Maximum_age && student.age >= Minimum_age)
                 {
-                    if (!RedisService.isTheDurationTooShort("UpdateStudent"))
+                    if (!RedisService.isTheDurationTooShort(student.id + "UpdateStudent"))
                     {
-                        return Content("This query was called in the last 10 seconds");
+                        LogsHelper.writeToLog("This query was called in the last 10 seconds");
                     }
                     else
                     {
                         await _context.SaveChangesAsync();
                     }
+                    return Content("The student was successfully updated");
                 }
                 else
                 {
-                    return Content("The age of the student must be between 0-18");
+                    LogsHelper.writeToLog("The student age must be between 0-18");
+                    return Ok("The student wasn't successfully added, The student age must be between 0-18");
                 }
             }
             catch (DbUpdateConcurrencyException)
@@ -119,14 +107,15 @@ namespace Home_Assignment.Controllers
                 _context.Student.Add(student);
                 try
                 {
-                    if (!RedisService.isTheDurationTooShort("GetStudent"))
+                    if (!RedisService.isTheDurationTooShort(student.id + "CreateStudent"))
                     {
-                        return Content("This query was called in the last 10 seconds");
+                        LogsHelper.writeToLog("This query was called in the last 10 seconds");
                     }
                     else
                     {
                         await _context.SaveChangesAsync();
                     }
+                    return Content("The student was successfully added");
                 }
                 catch (DbUpdateException)
                 {
@@ -140,11 +129,13 @@ namespace Home_Assignment.Controllers
                     }
                 }
 
-                return CreatedAtAction("GetStudent", new { id = student.id }, student);
+                return CreatedAtAction("CreateStudent", new { id = student.id }, student);
             }
             else
             {
-                return Content("The student age must be between 0-18");
+                LogsHelper.writeToLog("The student age must be between 0-18");
+                return Ok("The student wasn't successfully added, The student age must be between 0-18");
+
             }
         }
 
@@ -157,11 +148,17 @@ namespace Home_Assignment.Controllers
             {
                 return NotFound();
             }
+            if (!RedisService.isTheDurationTooShort(id + "DeleteStudent"))
+            {
+                LogsHelper.writeToLog("This query was called in the last 10 seconds");
+            }
+            else
+            {
+                _context.Student.Remove(student);
+                await _context.SaveChangesAsync();
+            }
 
-            _context.Student.Remove(student);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return Content("The student was successfully removed");
         }
 
         private bool StudentExists(long id)
