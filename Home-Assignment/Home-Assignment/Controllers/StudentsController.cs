@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Home_Assignment.Data;
 using Home_Assignment.Models;
 using Home_Assignment.Dal;
+using System.Configuration;
 
 namespace Home_Assignment.Controllers
 {
@@ -17,19 +18,19 @@ namespace Home_Assignment.Controllers
     {
         public static Dictionary<long, Dictionary<string, Task<IActionResult>>> isExsitInTheCache = new Dictionary<long, Dictionary<string, Task<IActionResult>>>();
         private readonly MvcStudentContext _context;
-        const int Minimum_age = 0;
-        const int Maximum_age = 18;
+        int Minimum_age = Int32.Parse(ConfigurationManager.AppSettings["Minimum_age"].ToString());
+        int Maximum_age = Int32.Parse(ConfigurationManager.AppSettings["Maximum_age"].ToString());
 
         public StudentsController(MvcStudentContext context)
         {
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
-        {
-            return await _context.Student.ToListAsync();
-        }
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
+        //{
+        //    return await _context.Student.ToListAsync();
+        //}
 
 
         // GET: api/Students/5

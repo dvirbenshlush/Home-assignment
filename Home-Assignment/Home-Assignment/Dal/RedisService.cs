@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ServiceStack.Redis;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -15,7 +16,10 @@ namespace Home_Assignment.Dal
         {
             using (RedisClient client = new RedisClient(host))
             {
-                client.Set(key, value);
+                if (client.Get<string>(key) == null)
+                {
+                    client.Set(key, value);
+                }
             }
         }
 
@@ -43,17 +47,12 @@ namespace Home_Assignment.Dal
 
             if (duration.Seconds > 10)
             {
-                RedisService.SaveData("localhost", id_and_action_name, DateTime.Now.ToString());
+                RedisService.SaveData(ConfigurationManager.AppSettings["Minimum_age"].ToString(), id_and_action_name, DateTime.Now.ToString());
                 return true;
             }
             return false;
         }
 
-        public static Task<ActionResult<Student>> ExcuteAction(CacheProperties cacheProperties)
-        {
-            string jsonString = JsonSerializer.Serialize(cacheProperties);
 
-            return null;
-        }
     }
 }
