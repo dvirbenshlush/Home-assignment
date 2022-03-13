@@ -26,11 +26,11 @@ namespace Home_Assignment.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
-        {
-            return await _context.Student.ToListAsync();
-        }
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
+        //{
+        //    return await _context.Student.ToListAsync();
+        //}
 
 
         // GET: api/Students/5
@@ -50,7 +50,7 @@ namespace Home_Assignment.Controllers
             {
                 return NotFound();
             }
-            else if (!RedisService.isTheDurationTooShort(studentsResult.First().id + "GetStudent"))
+            else if (RedisService.isTheDurationTooShort(studentsResult.First().id + "GetStudent"))
             {
                 LogsHelper.writeToLog("This query was called 10 seconds ago");
             }
@@ -68,7 +68,7 @@ namespace Home_Assignment.Controllers
             {
                 if (student.age <= Maximum_age && student.age >= Minimum_age)
                 {
-                    if (!RedisService.isTheDurationTooShort(student.id + "UpdateStudent"))
+                    if (RedisService.isTheDurationTooShort(student.id + "UpdateStudent"))
                     {
                         LogsHelper.writeToLog("This query was called in the last 10 seconds");
                     }
@@ -108,7 +108,7 @@ namespace Home_Assignment.Controllers
                 _context.Student.Add(student);
                 try
                 {
-                    if (!RedisService.isTheDurationTooShort(student.id + "CreateStudent"))
+                    if (RedisService.isTheDurationTooShort(student.id + "CreateStudent"))
                     {
                         LogsHelper.writeToLog("This query was called in the last 10 seconds");
                     }
@@ -149,7 +149,7 @@ namespace Home_Assignment.Controllers
             {
                 return NotFound();
             }
-            if (!RedisService.isTheDurationTooShort(id + "DeleteStudent"))
+            if (RedisService.isTheDurationTooShort(id + "DeleteStudent"))
             {
                 LogsHelper.writeToLog("This query was called in the last 10 seconds");
             }
